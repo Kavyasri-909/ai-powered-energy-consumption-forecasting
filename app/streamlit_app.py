@@ -1,24 +1,19 @@
-import pandas as pd
+import streamlit as st
+import joblib
 import os
-import pickle
-from sklearn.linear_model import LinearRegression
 
-# Load data
-data = pd.read_csv("data/raw/energy.csv")
+# Load model
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "..", "models", "model.pkl")
 
-# Features
-X = data[['hour', 'day', 'month']]
-y = data['energy_consumption']
+model = joblib.load(model_path)
 
-# Train model
-model = LinearRegression()
-model.fit(X, y)
+st.title("Energy Consumption Predictor")
 
-# Ensure models folder exists
-os.makedirs("models", exist_ok=True)
+hour = st.slider("Hour", 0, 23)
+day = st.slider("Day", 1, 31)
+month = st.slider("Month", 1, 12)
 
-# Save model properly
-with open("models/model.pkl", "wb") as f:
-    pickle.dump(model, f)
-
-print("✅ Model saved successfully!")
+if st.button("Predict"):
+    prediction = model.predict([[hour, day, month]])
+    st.success(f"Predicted Energy Consumption: {prediction[0]}")
