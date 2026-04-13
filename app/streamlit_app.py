@@ -1,39 +1,24 @@
-import streamlit as st
-import pickle
-import os
 import pandas as pd
+import os
+import pickle
+from sklearn.linear_model import LinearRegression
 
-# Get base directory (project root)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Load data
+data = pd.read_csv("data/raw/energy.csv")
 
-# Model path
-model_path = os.path.join(BASE_DIR, "models", "model.pkl")
+# Features
+X = data[['hour', 'day', 'month']]
+y = data['energy_consumption']
 
-# Load model safely
-if not os.path.exists(model_path):
-    st.error("❌ Model file not found. Run train_model.py first.")
-    st.stop()
+# Train model
+model = LinearRegression()
+model.fit(X, y)
 
-with open(model_path, "rb") as f:
-    model = pickle.load(f)
+# Ensure models folder exists
+os.makedirs("models", exist_ok=True)
 
-# UI
-st.title("⚡ Energy Consumption Forecasting System")
+# Save model properly
+with open("models/model.pkl", "wb") as f:
+    pickle.dump(model, f)
 
-date = st.date_input("Select Date")
-hour = st.slider("Select Hour", 0, 23)
-
-# Prediction
-if st.button("Predict"):
-
-    day = date.day
-    month = date.month
-
-    data = pd.DataFrame(
-        [[hour, day, month]],
-        columns=['hour', 'day', 'month']
-    )
-
-    prediction = model.predict(data)[0]
-
-    st.success(f"Predicted Energy Consumption: {prediction:.2f} kWh")
+print("✅ Model saved successfully!")
